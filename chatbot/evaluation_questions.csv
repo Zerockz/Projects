@@ -1,0 +1,7 @@
+question,expected_answer,source_url
+What is the capital of Norway?,"Oslo","https://en.wikipedia.org/wiki/Norway"
+Who is the current King of Norway?,"The King is Harald V.","https://en.wikipedia.org/wiki/Monarchy_of_Norway"
+What currency is used in Norway?,"The Norwegian krone.","https://en.wikipedia.org/wiki/Norwegian_krone"
+When did Norway join NATO?,"Norway became a member in 4 April 1949.","https://en.wikipedia.org/wiki/Foreign_relations_of_Norway"
+Is Sami a official language in  Norway?,"Sámi and Norwegian are the official languages of Norway.","https://en.wikipedia.org/wiki/Languages_of_Norway"
+How big is the universe? ,"I don't know.", "https://en.wikipedia.org/wiki/Universe"

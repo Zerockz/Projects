@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Wikipedia Knowledge Chatbot</title>
+  <style>
+    :root{
+      --brand: #3366cc;     /* Wikipedia blue */
+      --brand-2:#2a4b8d;
+      --accent:#f5f6fa;
+      --card:#ffffff;
+      --text:#1c1c1c;
+      --muted:#6a7177;
+      --shadow:0 6px 20px rgba(0,0,0,.08);
+      --radius:16px;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      color:var(--text);
+      background:var(--accent);
+    }
+    header{
+      background:linear-gradient(90deg,var(--brand-2),var(--brand));
+      color:#fff;
+      padding:18px 20px;
+      display:flex; align-items:center; gap:14px;
+      position:sticky; top:0; z-index:10;
+      box-shadow: var(--shadow);
+    }
+    header .crest{
+      width:38px;height:38px;border-radius:8px;background:#fff1;
+      display:grid; place-items:center; font-weight:700; letter-spacing:.5px;
+      border:1px solid #fff2;
+      font-size:22px;
+    }
+    header h1{
+      font-size:18px; margin:0; font-weight:650;
+    }
+    main{
+      max-width:980px; margin:30px auto; padding:0 16px;
+      display:grid; grid-template-columns: 1fr; gap:18px;
+    }
+    .hero{
+      background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow);
+      padding:18px 18px;
+      display:flex; align-items:center; gap:18px;
+    }
+    .hero .info h2{ margin:4px 0 8px; font-size:20px; }
+    .hero .info p{ margin:0; color:var(--muted); }
+    .chat{
+      background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow);
+      display:flex; flex-direction:column; height:min(70vh,740px);
+      overflow:hidden;
+    }
+    .chat-log{
+      flex:1; padding:18px; overflow:auto; background:#f8f9fa;
+    }
+    .bubble{
+      max-width:78%; padding:12px 14px; border-radius:14px;
+      margin:10px 0; line-height:1.5;
+      box-shadow:0 2px 10px rgba(0,0,0,.04);
+      white-space:pre-wrap;
+    }
+    .bot{ background:#ffffff; border:1px solid #e9eef3; }
+    .user{ background:#e7f1ff; margin-left:auto; }
+    .meta{ font-size:12px; color:var(--muted); margin-top:6px; }
+    .sources{ margin-top:10px; font-size:13px; color:var(--muted); }
+    .sources a{ color:var(--brand); text-decoration:none; }
+    .sources a:hover{ text-decoration:underline; }
+    .composer{
+      border-top:1px solid #e9eef3; padding:12px; display:flex; gap:10px; background:#fff;
+    }
+    .composer input{
+      flex:1; padding:12px 14px; border:1px solid #d8e2ea; border-radius:12px; outline:none;
+      font-size:15px;
+    }
+    .composer button{
+      background:var(--brand); color:#fff; border:none; padding:12px 16px; font-size:15px;
+      border-radius:12px; cursor:pointer; box-shadow: var(--shadow);
+    }
+    .composer button:disabled{ opacity:.6; cursor:not-allowed; }
+    .hint{ font-size:13px; color:var(--muted); margin-top:2px; }
+  </style>
+</head>
+<body>
+<header>
+  <div class="crest">📘</div>
+  <h1>Wikipedia Knowledge Chatbot</h1>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="info">
+      <h2>Hello! I'm your Wikipedia-based assistant 📚</h2>
+      <p>Ask me anything about <strong>Norway</strong> — history, geography, culture, government, or notable figures. I answer based on verified content from <strong>Wikipedia</strong>.</p>
+      
+    </div>
+  </section>
+
+  <section class="chat" aria-label="Chat">
+    <div id="log" class="chat-log" role="log" aria-live="polite">
+      <div class="bubble bot">
+        Hi there! I’m a chatbot trained on Wikipedia articles about Norway 🇳🇴.  
+        Ask me a question to get started.
+        <div class="meta">Source: Wikipedia (RAG-based retrieval)</div>
+      </div>
+    </div>
+    <div class="composer">
+      <input id="q" type="text" placeholder="Type your question about Norway…" />
+      <button id="send">Send</button>
+    </div>
+  </section>
+</main>
+
+<script>
+  const q = document.getElementById('q');
+  const send = document.getElementById('send');
+  const log = document.getElementById('log');
+
+  function addBubble(text, who='bot', meta='') {
+    const wrap = document.createElement('div');
+    wrap.className = 'bubble ' + who;
+    wrap.textContent = text;
+    if (meta) {
+      const m = document.createElement('div');
+      m.className = 'meta';
+      m.textContent = meta;
+      wrap.appendChild(m);
+    }
+    log.appendChild(wrap);
+    log.scrollTop = log.scrollHeight;
+    return wrap;
+  }
+
+  function addSources(parent, sources) {
+    if (!sources || !sources.length) return;
+    const div = document.createElement('div');
+    div.className = 'sources';
+    div.innerHTML = 'Sources: ' + sources.map(s => {
+      const t = s.title ? ` – ${s.title}` : '';
+      return `<a href="${s.url}" target="_blank" rel="noopener">${s.url}</a>${t}`;
+    }).join(' • ');
+    parent.appendChild(div);
+  }
+
+  async function ask() {
+    const text = q.value.trim();
+    if (!text) return;
+    q.value = '';
+    q.focus();
+    addBubble(text, 'user');
+
+    send.disabled = true;
+    const thinking = addBubble('Searching Wikipedia and formulating an answer…', 'bot');
+
+    try {
+      const res = await fetch('/query', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify({ question: text })
+      });
+      const data = await res.json();
+
+      thinking.remove();
+      const latency = (data.latency_sec != null) ? `⏱ ${data.latency_sec}s` : '';
+      const bubble = addBubble(data.answer || 'Sorry, I could not find an answer in Wikipedia.', 'bot', latency);
+
+      if (Array.isArray(data.sources)) {
+        addSources(bubble, data.sources);
+      }
+    } catch (e) {
+      thinking.remove();
+      addBubble('Sorry, something went wrong while fetching data from Wikipedia.', 'bot');
+      console.error(e);
+    } finally {
+      send.disabled = false;
+    }
+  }
+
+  send.addEventListener('click', ask);
+  q.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') ask();
+  });
+</script>
+</body>
+</html>

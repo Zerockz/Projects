@@ -1,0 +1,10 @@
+load to docker if not built on you machine:
+    docker load -i wiki-chatbot.tar
+
+Run the chatnot:
+    docker run -p 5000:5000 wiki-chatbot
+
+run evaluation, in the same folder as the dockerfile:
+    python evaluate.py
+
+

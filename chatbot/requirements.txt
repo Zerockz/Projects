@@ -1,0 +1,29 @@
+# --- Web & API ---
+flask==3.0.3
+requests==2.32.3
+tqdm==4.66.5
+
+# --- Numeric stack (CPU-safe) ---
+numpy==1.26.4
+
+# --- LangChain ecosystem ---
+langchain==0.3.0
+langchain-core==0.3.0
+langchain-community==0.3.0
+langchain-text-splitters==0.3.0
+langchain-huggingface==0.1.0
+
+# --- Vector DB ---
+faiss-cpu==1.8.0
+
+# --- Hugging Face / Transformers ---
+transformers==4.45.2
+tokenizers==0.20.0
+safetensors==0.4.5
+sentence-transformers==3.1.1
+
+# --- Torch (CPU build) ---
+torch==2.4.1
+
+# --- Wikipedia integration ---
+wikipedia-api==0.6.0
